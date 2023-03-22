@@ -315,11 +315,7 @@ public class AdminBoardController {
 	
 	@RequestMapping(value = "/event.reg", method = RequestMethod.POST)
 	public String eventReg(@RequestParam(value="mainimg") MultipartFile mainimg,@RequestParam(value="detailimg[]") List<MultipartFile> detailimg, EventDTO eventDto) {
-		System.out.println(mainimg.getOriginalFilename());
-		System.out.println(detailimg.get(0).getOriginalFilename());
-		System.out.println(detailimg.get(1).getOriginalFilename());
 		eventDAO.regEvent(mainimg, detailimg, eventDto);
-		
 		return "redirect:admin.event.go";
 	}
 	

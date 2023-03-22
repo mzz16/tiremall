@@ -3,6 +3,7 @@ package com.tireshoppingmall.home.admin.board;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.sun.xml.bind.v2.runtime.output.Encoded;
 
 @Service
 public class EventDAO {
@@ -103,19 +106,20 @@ public class EventDAO {
 		String path = servletContext.getRealPath("resources/upload-event/");
 
 		System.out.println(eventDto.toString());
-		String maingimg_old = eventDto.getE_mainimg();
+		String mainimg_old = eventDto.getE_mainimg();
 		String detailimg_old = eventDto.getE_detailimg();
 		StringBuilder sb = new StringBuilder();
 		while (files.hasNext()) {
 			String uploadFile = files.next();
 			MultipartFile mFile = mf.getFile(uploadFile);
-			String fileName = mFile.getOriginalFilename();
+			String extension =	"." + mFile.getOriginalFilename().substring(mFile.getOriginalFilename().lastIndexOf(".") + 1);
 			UUID uuid = UUID.randomUUID();
 			String[] uuids = uuid.toString().split("-");
-			String uniqueName = uuids[0] + uuids[1];
+			String uniqueName = uuids[0] + uuids[1] + uuids[2];
+			System.out.println(uniqueName);
 			try {
-				mFile.transferTo(new File(path + uniqueName + fileName));
-				sb.append(uniqueName + fileName + "!");
+				mFile.transferTo(new File(path + uniqueName + extension));
+				sb.append(uniqueName + extension + "!");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -131,8 +135,8 @@ public class EventDAO {
 		System.out.println(sb.toString());
 		System.out.println(eventDto.toString());
 		if (ss.getMapper(AdminBoardMapper.class).eventUpdate(eventDto) == 1) {
-			if (maingimg_old != eventDto.getE_mainimg() && eventDto.getE_mainimg() != null) {
-				new File(path + maingimg_old).delete();
+			if (mainimg_old != eventDto.getE_mainimg() && eventDto.getE_mainimg() != null) {
+				new File(path + mainimg_old).delete();
 				return eventDto.getE_mainimg();
 			} else if (detailimg_old != eventDto.getE_detailimg()) {
 				System.out.println("삭제 되니?");
@@ -168,18 +172,24 @@ public class EventDAO {
 		String path = servletContext.getRealPath("resources/upload-event/");
 		UUID uuid = UUID.randomUUID();
 		String[] uuids = uuid.toString().split("-");
-		String saveFileName = uuids[0] + uuids[1] + mainimg.getOriginalFilename();
-		eventDto.setE_mainimg(saveFileName);
+		String extension =	"." + mainimg.getOriginalFilename().substring(mainimg.getOriginalFilename().lastIndexOf(".") + 1);
 		try {
-			mainimg.transferTo(new File(path + saveFileName));
+		String saveFileName = uuids[0] + uuids[1] + uuids[2];
+		System.out.println(saveFileName);
+		eventDto.setE_mainimg(saveFileName + extension);
+			mainimg.transferTo(new File(path + saveFileName + extension));
 		StringBuilder sb = new StringBuilder();
 		String saveFileName2 = null;
+		String extension2 = null;
 		for (MultipartFile mf : detailimg) {
 			System.out.println(mf.getOriginalFilename());
+			extension2 = "." + mf.getOriginalFilename().substring(mf.getOriginalFilename().lastIndexOf(".") + 1);
 			uuid = UUID.randomUUID();
-			saveFileName2 = uuids[0] + uuids[1] + mf.getOriginalFilename();
-			sb.append(saveFileName + "!");
-			mf.transferTo(new File(path + saveFileName));
+			uuids = uuid.toString().split("-");
+			saveFileName2 = uuids[0] + uuids[1] + uuids[2];
+			System.out.println(saveFileName2);
+			sb.append(saveFileName2 + extension2 + "!");
+			mf.transferTo(new File(path + saveFileName2 + extension2));
 		}
 		eventDto.setE_detailimg(sb.toString());
 		System.out.println(eventDto.toString());
@@ -187,13 +197,13 @@ public class EventDAO {
 		if(ss.getMapper(AdminBoardMapper.class).eventReg(eventDto)==1) {
 			System.out.println("등록성공");
 		}else {
-			File mainFile = new File(path + saveFileName);
+			File mainFile = new File(path + saveFileName + extension);
 			if(mainFile.exists()) {
 				mainFile.delete();
 			}
-			String detailFiles[]	= sb.toString().split("!");
+			String detailFiles[] = sb.toString().split("!");
 			for (String df : detailFiles) {
-			File detailFile = new File(path + saveFileName2);
+			File detailFile = new File(path + df + extension2);
 			if(detailFile.exists()) {
 				detailFile.delete();
 			}
